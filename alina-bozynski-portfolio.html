@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alina Bozynski — Web Developer</title>
+  <meta name="description" content="Alina Bozynski, web developer — website design, development, analytics, and CMS.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" >
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-name" href="#">Alina Bozynski</a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <canvas id="contour-canvas" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <p class="hero-name">Alina Bozynski</p>
+    <h1 class="hero-title">Web Developer</h1>
+    <p class="hero-line">I design, build, and maintain websites that hold up at scale — from a government platform serving millions of page views to small internal tools that just need to work.</p>
+  </div>
+  <div class="scroll-cue"></div>
+</section>
+
+<main>
+  <section id="about">
+    <div class="section-mark"></div>
+    <h2>About</h2>
+    <p class="bio">I'm a web developer based in Manitoba, with over 3 years of professional experience.</p>
+
+    <p class="subhead">Experience</p>
+
+    <div class="role">
+      <div class="role-head">
+        <h3>Web Manager, Government of Manitoba</h3>
+        <span class="role-dates">May 2024 – Present</span>
+      </div>
+      <ul>
+        <li>Contribute to large-scale website modernization involving content strategy, information architecture, and user experience.</li>
+        <li>Work across CMS systems including Drupal and WordPress to develop, update, and maintain a site of more than 2,000 pages.</li>
+        <li>Ensure accessibility compliance by implementing WCAG guidelines.</li>
+        <li>Track and report on site performance using Google Analytics, Google Tag Manager, and Power BI.</li>
+        <li>Build internal business tools for process improvements using SharePoint, Power Automate, and Power Apps.</li>
+      </ul>
+    </div>
+
+    <div class="role">
+      <div class="role-head">
+        <h3>Web Developer, 3Common</h3>
+        <span class="role-dates">January - August 2023</span>
+      </div>
+      <ul>
+        <li>Designed and executed database queries to handle datasets efficiently and reliably.</li>
+        <li>Adapted quickly to an unfamiliar stack — Vue.js, Quasar, Netlify, and MongoDB — to ship production-ready features.</li>
+        <li>Diagnosed and patched critical logic defects and visual inconsistencies, improving stability and polish.</li>
+      </ul>
+    </div>
+
+    <p class="subhead">Education</p>
+    <div class="edu-item">
+      <h3>Full Stack Web Development Diploma, Red River College</h3>
+      <span class="edu-dates">August 2023</span>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="section-mark"></div>
+    <h2>Work</h2>
+
+    <div class="project">
+      <div class="project-media"><span><img src="images/lens-and-light.png"></span></div>
+      <h3>Lens &amp; Light</h3>
+      <p class="project-desc">Photography website</p>
+      <p class="project-stack">HTML, CSS, JavaScript</p>
+      <a class="btn" href="https://alinabozynski.github.io/Lens-Light-Photography/" target="_blank">View project -></a>
+    </div>
+
+    <div class="project">
+      <div class="project-media"><span><img src="images/oak-and-slate.png"></span></div>
+      <h3>Oak & Slate</h3>
+      <p class="project-desc">Landscaping site</p>
+      <p class="project-stack">Squarespace, CMS</p>
+      <p>Site password: example-landscaping</p>
+      <a class="btn" href="https://coyote-greyhound-a3ay.squarespace.com" target="_blank">View project -></a>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <p class="footer-meta">&copy; 2026 Alina Bozynski</p>
+</footer>
+
+<script>
+(function(){
+  var canvas = document.getElementById('contour-canvas');
+  var hero = document.getElementById('hero');
+  var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var W = 0, H = 0, DPR = 1, cols = 0, rows = 0;
+  var cellSize = 24;
+  var heights = new Float32Array(0);
+
+  var levels = [];
+  (function buildLevels(){
+    for (var L = -2.4; L <= 2.6; L += 0.35) levels.push(L);
+  })();
+
+  function resize(){
+    var rect = hero.getBoundingClientRect();
+    W = rect.width;
+    H = rect.height;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cols = Math.ceil(W / cellSize);
+    rows = Math.ceil(H / cellSize);
+    heights = new Float32Array((cols + 1) * (rows + 1));
+  }
+
+  var mouseClientX = -9999, mouseClientY = -9999;
+  var mouseLocalX = -9999, mouseLocalY = -9999;
+  var mouseStrength = 0;
+
+  function onMove(e){
+    var p = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    mouseClientX = p.clientX;
+    mouseClientY = p.clientY;
+    ensureLoop();
+  }
+  window.addEventListener('pointermove', onMove, { passive: true });
+  window.addEventListener('touchmove', onMove, { passive: true });
+  document.addEventListener('mouseleave', function(){
+    mouseClientX = -9999;
+    mouseClientY = -9999;
+    ensureLoop();
+  });
+
+  function computeHeights(){
+    var idx = 0;
+    for (var j = 0; j <= rows; j++){
+      var y = j * cellSize;
+      for (var i = 0; i <= cols; i++, idx++){
+        var x = i * cellSize;
+        var h = Math.sin(x * 0.006) * 0.9 +
+                Math.cos(y * 0.007) * 0.7 +
+                Math.sin((x + y) * 0.004) * 0.5;
+        var dx = x - mouseLocalX, dy = y - mouseLocalY;
+        var d2 = dx * dx + dy * dy;
+        h += mouseStrength * 2.2 * Math.exp(-d2 / (2 * 160 * 160));
+        heights[idx] = h;
+      }
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(237, 235, 228, 0.11)';
+    ctx.lineWidth = 1;
+
+    var stride = cols + 1;
+    var lo = levels[0], hi = levels[levels.length - 1];
+
+    for (var j = 0; j < rows; j++){
+      var y0 = j * cellSize, y1 = y0 + cellSize;
+      var rowOff = j * stride, rowOffNext = (j + 1) * stride;
+      for (var i = 0; i < cols; i++){
+        var x0 = i * cellSize, x1 = x0 + cellSize;
+        var tl = heights[rowOff + i];
+        var tr = heights[rowOff + i + 1];
+        var br = heights[rowOffNext + i + 1];
+        var bl = heights[rowOffNext + i];
+
+        var cmin = Math.min(tl, tr, br, bl);
+        var cmax = Math.max(tl, tr, br, bl);
+        if (cmax < lo || cmin > hi) continue;
+
+        for (var k = 0; k < levels.length; k++){
+          var level = levels[k];
+          if (level < cmin || level > cmax) continue;
+
+          var idx = 0;
+          if (tl > level) idx |= 8;
+          if (tr > level) idx |= 4;
+          if (br > level) idx |= 2;
+          if (bl > level) idx |= 1;
+          if (idx === 0 || idx === 15) continue;
+
+          var tx, ty, rx, ry, bx, by, lx, ly, tt;
+
+          switch (idx){
+            case 1: case 14:
+              tt = (level - tl) / (bl - tl); lx = x0; ly = y0 + tt * (y1 - y0);
+              tt = (level - bl) / (br - bl); bx = x0 + tt * (x1 - x0); by = y1;
+              ctx.moveTo(lx, ly); ctx.lineTo(bx, by);
+              break;
+            case 2: case 13:
+              tt = (level - bl) / (br - bl); bx = x0 + tt * (x1 - x0); by = y1;
+              tt = (level - tr) / (br - tr); rx = x1; ry = y0 + tt * (y1 - y0);
+              ctx.moveTo(bx, by); ctx.lineTo(rx, ry);
+              break;
+            case 3: case 12:
+              tt = (level - tl) / (bl - tl); lx = x0; ly = y0 + tt * (y1 - y0);
+              tt = (level - tr) / (br - tr); rx = x1; ry = y0 + tt * (y1 - y0);
+              ctx.moveTo(lx, ly); ctx.lineTo(rx, ry);
+              break;
+            case 4: case 11:
+              tt = (level - tl) / (tr - tl); tx = x0 + tt * (x1 - x0); ty = y0;
+              tt = (level - tr) / (br - tr); rx = x1; ry = y0 + tt * (y1 - y0);
+              ctx.moveTo(tx, ty); ctx.lineTo(rx, ry);
+              break;
+            case 6: case 9:
+              tt = (level - tl) / (tr - tl); tx = x0 + tt * (x1 - x0); ty = y0;
+              tt = (level - bl) / (br - bl); bx = x0 + tt * (x1 - x0); by = y1;
+              ctx.moveTo(tx, ty); ctx.lineTo(bx, by);
+              break;
+            case 7: case 8:
+              tt = (level - tl) / (tr - tl); tx = x0 + tt * (x1 - x0); ty = y0;
+              tt = (level - tl) / (bl - tl); lx = x0; ly = y0 + tt * (y1 - y0);
+              ctx.moveTo(tx, ty); ctx.lineTo(lx, ly);
+              break;
+            case 5:
+              tt = (level - tl) / (tr - tl); tx = x0 + tt * (x1 - x0); ty = y0;
+              tt = (level - tl) / (bl - tl); lx = x0; ly = y0 + tt * (y1 - y0);
+              tt = (level - bl) / (br - bl); bx = x0 + tt * (x1 - x0); by = y1;
+              tt = (level - tr) / (br - tr); rx = x1; ry = y0 + tt * (y1 - y0);
+              ctx.moveTo(tx, ty); ctx.lineTo(lx, ly);
+              ctx.moveTo(bx, by); ctx.lineTo(rx, ry);
+              break;
+            case 10:
+              tt = (level - tl) / (tr - tl); tx = x0 + tt * (x1 - x0); ty = y0;
+              tt = (level - tr) / (br - tr); rx = x1; ry = y0 + tt * (y1 - y0);
+              tt = (level - bl) / (br - bl); bx = x0 + tt * (x1 - x0); by = y1;
+              tt = (level - tl) / (bl - tl); lx = x0; ly = y0 + tt * (y1 - y0);
+              ctx.moveTo(tx, ty); ctx.lineTo(rx, ry);
+              ctx.moveTo(bx, by); ctx.lineTo(lx, ly);
+              break;
+          }
+        }
+      }
+    }
+    ctx.stroke();
+  }
+
+  var rafId = null;
+
+  function ensureLoop(){
+    if (!reduceMotion && rafId === null) rafId = requestAnimationFrame(frame);
+  }
+
+  function frame(){
+    rafId = null;
+
+    var rect = hero.getBoundingClientRect();
+    var targetX = mouseClientX - rect.left;
+    var targetY = mouseClientY - rect.top;
+    var active = targetX > -120 && targetX < W + 120 && targetY > -120 && targetY < H + 120;
+
+    mouseStrength += ((active ? 1 : 0) - mouseStrength) * 0.06;
+    mouseLocalX += (targetX - mouseLocalX) * 0.12;
+    mouseLocalY += (targetY - mouseLocalY) * 0.12;
+
+    computeHeights();
+    draw();
+
+    if (!reduceMotion && (active || mouseStrength > 0.001)) {
+      rafId = requestAnimationFrame(frame);
+    }
+  }
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){
+      resize();
+      computeHeights();
+      draw();
+    }, 150);
+  });
+
+  resize();
+  computeHeights();
+  draw();
+})();
+</script>
+
+</body>
+</html>
