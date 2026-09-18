@@ -291,6 +291,9 @@
     max-width: 58ch;
     margin: 10px 0 14px;
   }
+  .project-desc.type {
+    margin: 10px 0 4px;
+  }
 
   .project-stack{
     font-size: 0.85rem;
