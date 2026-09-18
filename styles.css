@@ -122,14 +122,14 @@
   .hero-title{
     font-family: var(--serif);
     font-weight: 700;
-    font-size: clamp(2.6rem, 9vw, 7rem);
+    font-size: clamp(2.7rem, 9vw, 7rem);
     line-height: 1.02;
     margin: 0 0 28px;
     color: var(--ink);
   }
 
   .hero-line{
-    font-size: clamp(1.3rem, 1.6vw, 3.2rem);
+    font-size: clamp(1.2rem, 1.6vw, 3.2rem);
     color: var(--ink-muted);
     margin: 0 auto;
     line-height: 1.6;
